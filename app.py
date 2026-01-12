@@ -67,18 +67,33 @@ def show_shop():
         st.warning("No products found in the sheet.")
         return
 
+    # Custom CSS to style the 'st.image' to look nice
+    st.markdown("""
+    <style>
+    [data-testid="stImage"] {
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: -15px; /* Pulls image closer to the card below */
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
     cols = st.columns(3)
     for index, row in df.iterrows():
         with cols[index % 3]:
+            # 1. USE NATIVE STREAMLIT IMAGE (This fixes the broken link)
+            st.image(row['image_url'], use_container_width=True)
+            
+            # 2. USE GLASS CARD ONLY FOR TEXT
             st.markdown(f"""
-            <div class="glass-card">
-                <img src="{row['image_url']}" style="width:100%; border-radius:10px; aspect-ratio: 1/1; object-fit: cover;">
-                <h3 style="margin-top:10px;">{row['name']}</h3>
-                <p>${row['price']}</p>
+            <div class="glass-card" style="padding-top: 20px; margin-top: 0px;">
+                <h3 style="margin:0; font-size: 1.2rem;">{row['name']}</h3>
+                <p style="opacity:0.8; font-size: 1rem;">${row['price']}</p>
             </div>
             """, unsafe_allow_html=True)
             
-            if st.button(f"Buy {row['name']}", key=f"btn_{index}"):
+            # 3. BUTTON
+            if st.button(f"Buy Now", key=f"btn_{index}"):
                 st.session_state.selected_product = row
                 st.session_state.page = "order"
                 st.rerun()
