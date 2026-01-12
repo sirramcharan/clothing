@@ -60,20 +60,20 @@ if 'page' not in st.session_state: st.session_state.page = "shop"
 if 'selected_product' not in st.session_state: st.session_state.selected_product = None
 
 def show_shop():
-    st.title("🌊 SHARK STREETWEAR")
+    st.title("C-Ram Presents CRX ")
     df = get_products()
     
     if df.empty:
         st.warning("No products found in the sheet.")
         return
 
-    # Custom CSS to style the 'st.image' to look nice
+    # Custom CSS to style the images
     st.markdown("""
     <style>
     [data-testid="stImage"] {
         border-radius: 15px;
         overflow: hidden;
-        margin-bottom: -15px; /* Pulls image closer to the card below */
+        margin-bottom: -15px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -81,18 +81,18 @@ def show_shop():
     cols = st.columns(3)
     for index, row in df.iterrows():
         with cols[index % 3]:
-            # 1. USE NATIVE STREAMLIT IMAGE (This fixes the broken link)
+            # 1. Image
             st.image(row['image_url'], use_container_width=True)
             
-            # 2. USE GLASS CARD ONLY FOR TEXT
+            # 2. Text Card (Now with INR Symbol)
             st.markdown(f"""
             <div class="glass-card" style="padding-top: 20px; margin-top: 0px;">
                 <h3 style="margin:0; font-size: 1.2rem;">{row['name']}</h3>
-                <p style="opacity:0.8; font-size: 1rem;">${row['price']}</p>
+                <p style="opacity:0.8; font-size: 1rem;">₹{row['price']}</p>
             </div>
             """, unsafe_allow_html=True)
             
-            # 3. BUTTON
+            # 3. Button
             if st.button(f"Buy Now", key=f"btn_{index}"):
                 st.session_state.selected_product = row
                 st.session_state.page = "order"
@@ -100,7 +100,7 @@ def show_shop():
 
     st.markdown("---")
     st.markdown("<h3 style='text-align:center; opacity:0.6'>🦈 Hoodies Coming Soon</h3>", unsafe_allow_html=True)
-
+    
 def show_order():
     prod = st.session_state.selected_product
     st.button("← Back", on_click=lambda: st.session_state.update(page="shop"))
