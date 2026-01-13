@@ -137,7 +137,7 @@ if 'selected_product' not in st.session_state: st.session_state.selected_product
 
 def show_shop():
     # Netflix Header
-    st.markdown("<h1 style='color: #E50914; font-size: 3rem;'>C-RAM <span style='color:white; font-size:1.5rem'>ORIGINALS</span></h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #E50914; font-size: 3rem;'>CRX <span style='color:white; font-size:1.5rem'>Origins</span></h1>", unsafe_allow_html=True)
     
     df = get_data(INVENTORY_CSV_URL)
     
