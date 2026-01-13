@@ -4,10 +4,14 @@ import requests
 import random
 
 # --- CONFIGURATION ---
-# 1. Paste the "Publish to Web" CSV link here:
+# 1. Paste the "Publish to Web" CSV link for INVENTORY here:
 INVENTORY_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS488mmEiNdSNsGU3CbwItasQSkJQal-O1Uyt2cPVMXxiRYWp9UW3fyQlLRCZ36qp5MbOFbePpGj6kT/pub?gid=0&single=true&output=csv"
 
-# 2. Paste the "Web App URL" from Apps Script here:
+# 2. Paste the "Publish to Web" CSV link for ORDERS here:
+# (Go to your Google Sheet > File > Share > Publish to Web > Select 'Orders' tab > CSV)
+ORDERS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS488mmEiNdSNsGU3CbwItasQSkJQal-O1Uyt2cPVMXxiRYWp9UW3fyQlLRCZ36qp5MbOFbePpGj6kT/pub?gid=868884767&single=true&output=csv" 
+
+# 3. Paste the "Web App URL" from Apps Script here:
 ORDER_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzCkOckpTZ2Tq8QondkNTipUmPc5TI_NQ44VTQWjuY3pZa01r7QUe1xQxWLhg_zbhFR/exec"
 
 ADMIN_PASSWORD = st.secrets["admin_password"]
@@ -86,18 +90,27 @@ def inject_custom_css():
         font-size: 0.9rem;
         font-weight: bold;
     }
+    
+    /* Coming Soon Section */
+    .coming-soon {
+        background: linear-gradient(to right, #222, #111);
+        padding: 40px;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 50px;
+        border: 1px solid #333;
+    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- DATA FUNCTIONS ---
 
-def get_products():
-    """Read inventory directly from the public CSV link"""
+def get_data(url):
+    """Read data directly from a public CSV link"""
     try:
-        df = pd.read_csv(INVENTORY_CSV_URL)
+        df = pd.read_csv(url)
         return df
     except Exception as e:
-        st.error("Could not load inventory. Check your CSV URL.")
         return pd.DataFrame()
 
 def send_order(name, size, phone, item):
@@ -124,17 +137,15 @@ if 'selected_product' not in st.session_state: st.session_state.selected_product
 
 def show_shop():
     # Netflix Header
-    # You can replace this text with an Image Logo using st.image('logo.png')
     st.markdown("<h1 style='color: #E50914; font-size: 3rem;'>C-RAM <span style='color:white; font-size:1.5rem'>ORIGINALS</span></h1>", unsafe_allow_html=True)
     
-    df = get_products()
+    df = get_data(INVENTORY_CSV_URL)
     
     if df.empty:
         st.warning("No products found in the sheet.")
         return
 
     # --- HERO SECTION (Featured Item) ---
-    # We pick a random item to display effectively as a "Banner"
     if not df.empty:
         # Pick a random product for the 'Hero' banner
         hero_item = df.sample(1).iloc[0]
@@ -159,7 +170,6 @@ def show_shop():
         </div>
         """, unsafe_allow_html=True)
         
-        # Hero Buttons
         col_hero_1, col_hero_2 = st.columns([1, 4])
         with col_hero_1:
             if st.button("▶ Play (Buy)", key="hero_btn"):
@@ -170,13 +180,10 @@ def show_shop():
     # --- ROW: TRENDING NOW ---
     st.markdown("### Trending Now")
     
-    # Grid Layout
-    cols = st.columns(4) # Netflix usually shows more items per row
+    cols = st.columns(4)
     
     for index, row in df.iterrows():
-        # Cycle through columns
         with cols[index % 4]:
-            # Use a container for the hover effect style
             with st.container():
                 st.image(row['image_url'], use_container_width=True)
                 st.markdown(f"""
@@ -191,13 +198,22 @@ def show_shop():
                     st.session_state.page = "order"
                     st.rerun()
 
+    # --- HOODIES COMING SOON ---
+    st.markdown("""
+    <div class="coming-soon">
+        <h1 style="font-size: 4rem; margin-bottom: 0;">🦈</h1>
+        <h2 style="color: white; margin-top: 10px;">Season 2: Hoodies</h2>
+        <p style="color: #888; font-size: 1.2rem;">Dropping Soon. The ultimate comfort for your binge-watching sessions.</p>
+        <p style="color: #E50914; font-weight: bold;">Remind Me 🔔</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("---")
     st.markdown("<p style='text-align:center; color: #666; font-size: 0.8rem;'>C-Ram Inc. • 2026</p>", unsafe_allow_html=True)
     
 def show_order():
     prod = st.session_state.selected_product
     
-    # Back Button (Styled like a text link)
     if st.button("← Back to Browse"):
         st.session_state.page = "shop"
         st.rerun()
@@ -219,7 +235,6 @@ def show_order():
             size = st.selectbox("Size Configuration", ["S", "M", "L", "XL"])
             phone = st.text_input("Account Number (Phone)")
             
-            # Submit button will pick up the global Red styling
             if st.form_submit_button("Complete Order"):
                 success = send_order(name, size, phone, prod['name'])
                 if success:
@@ -229,17 +244,29 @@ def show_order():
                     st.error("❌ Connection failed.")
 
 def show_admin():
-    st.title("Admin Settings")
-    pwd = st.text_input("Enter Pin", type="password")
+    st.title("Admin Dashboard")
+    pwd = st.text_input("Enter Master Pin", type="password")
+    
     if pwd == ADMIN_PASSWORD:
         st.success("Access Granted")
-        st.write("Live Content Library:")
-        st.dataframe(get_products())
+        
+        st.markdown("### 📋 Recent Customer Orders")
+        
+        if "PASTE_YOUR_ORDERS_CSV" in ORDERS_CSV_URL:
+            st.warning("⚠️ You haven't configured the Orders CSV URL yet!")
+            st.info("1. Go to your Google Sheet.\n2. Click File > Share > Publish to Web.\n3. Select the **'Orders'** tab and choose **CSV**.\n4. Paste that link into the `ORDERS_CSV_URL` variable in your code.")
+        else:
+            # Fetch orders from the new Orders CSV URL
+            df_orders = get_data(ORDERS_CSV_URL)
+            if not df_orders.empty:
+                st.dataframe(df_orders)
+                st.caption(f"Total Orders: {len(df_orders)}")
+            else:
+                st.info("No orders found yet.")
 
 def main():
     inject_custom_css()
     
-    # Custom Sidebar Navigation
     with st.sidebar:
         st.markdown("<h2 style='color:#E50914'>CRX</h2>", unsafe_allow_html=True)
         st.markdown("---")
