@@ -19,190 +19,87 @@ st.set_page_config(
 def inject_netflix_css():
     st.markdown("""
     <style>
-    /* RESET & BASICS */
+    /* --- RESET & BASICS --- */
     @import url('https://fonts.googleapis.com/css2?family=Martel+Sans:wght@200;400;700;800&display=swap');
     
     .stApp {
-        background-color: #141414; /* Netflix Background */
+        background-color: #141414;
         color: white;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
-    
-    /* REMOVE STREAMLIT PADDING */
-    .block-container {
-        padding-top: 0rem;
-        padding-left: 2rem;
-        padding-right: 2rem;
-        max-width: 100%;
-    }
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    .block-container { padding: 0 !important; max-width: 100%; }
+    header, footer { visibility: hidden; }
 
     /* --- NAVBAR --- */
     .netflix-nav {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 15px 40px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+        position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    }
+    .nav-logo { color: #E50914; font-size: 28px; font-weight: bold; margin-right: 20px; }
+    .nav-link { color: #e5e5e5; text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
+
+    /* --- BILLBOARD (HERO SECTION) --- */
+    /* This uses a flexible split layout now */
+    .billboard-container {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 20px 40px;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-    }
-    .nav-left { display: flex; align-items: center; gap: 20px; }
-    .nav-logo { color: #E50914; font-size: 30px; font-weight: bold; text-decoration: none; margin-right: 20px; }
-    .nav-link { color: #e5e5e5; text-decoration: none; font-size: 14px; transition: color 0.3s; }
-    .nav-link:hover { color: #b3b3b3; }
-    .nav-right { display: flex; align-items: center; gap: 15px; font-size: 14px; }
-
-    /* --- BILLBOARD (HERO) --- */
-    .billboard-container {
-        position: relative;
-        height: 70vh; /* 70% of viewport height */
+        height: 75vh; /* Tall height */
         width: 100%;
-        color: white;
-        margin-bottom: -100px; /* Pull rows up slightly */
-        overflow: hidden;
-    }
-    .billboard-bg {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-size: cover;
-        background-position: center top;
-        z-index: 0;
-    }
-    /* The Vignette (Gradient Fade) */
-    .billboard-gradient {
-        background: linear-gradient(0deg, #141414 0%, transparent 50%);
-        position: absolute;
-        width: 100%; height: 100%;
-        top: 0; z-index: 1;
-    }
-    .billboard-left-gradient {
-        background: linear-gradient(90deg, rgba(20,20,20,0.8) 0%, transparent 60%);
-        position: absolute;
-        width: 40%; height: 100%;
-        top: 0; z-index: 1;
-    }
-    .billboard-content {
+        background: linear-gradient(70deg, #000000 30%, #141414 100%); /* Cool dark gradient */
         position: relative;
-        z-index: 2;
-        padding-top: 20vh;
-        padding-left: 40px;
-        max-width: 500px;
+        overflow: hidden;
+        padding-top: 60px; /* Space for navbar */
+    }
+    
+    /* Left Side: Text */
+    .billboard-text {
+        width: 45%;
+        padding-left: 60px;
+        z-index: 10;
     }
     .billboard-title {
         font-size: 4rem;
         font-weight: 800;
-        line-height: 1.1;
-        margin-bottom: 1rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.45);
+        line-height: 1;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        background: -webkit-linear-gradient(#eee, #333);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     .billboard-desc {
         font-size: 1.2rem;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.45);
-        margin-bottom: 20px;
-        font-weight: 400;
+        color: #b3b3b3;
+        margin-bottom: 25px;
+        max-width: 500px;
     }
-    
-    /* --- BUTTONS --- */
-    /* Primary White Button (Play) */
-    .btn-play {
-        background-color: white;
-        color: black;
-        border: none;
-        padding: 0.8rem 2rem;
-        font-size: 1.2rem;
-        font-weight: bold;
-        border-radius: 4px;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: background-color 0.2s;
-    }
-    .btn-play:hover { background-color: rgba(255, 255, 255, 0.75); }
 
-    /* Secondary Gray Button (More Info) */
-    .btn-info {
-        background-color: rgba(109, 109, 110, 0.7);
-        color: white;
-        border: none;
-        padding: 0.8rem 2rem;
-        font-size: 1.2rem;
-        font-weight: bold;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-left: 10px;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: background-color 0.2s;
+    /* Right Side: Image */
+    .billboard-img-container {
+        width: 55%;
+        height: 100%;
+        position: relative;
     }
-    .btn-info:hover { background-color: rgba(109, 109, 110, 0.4); }
+    /* The Image itself - contained nicely so it doesn't zoom/crop */
+    .billboard-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* CRITICAL FIX: Ensures full shirt is seen */
+        object-position: center bottom;
+        mask-image: linear-gradient(to left, black 80%, transparent 100%); /* Fade edge */
+        -webkit-mask-image: linear-gradient(to left, black 70%, transparent 100%);
+    }
 
     /* --- ROWS & CARDS --- */
-    .row-header {
-        font-size: 1.4vw;
-        color: #e5e5e5;
-        font-weight: 700;
-        margin-left: 40px;
-        margin-bottom: 10px;
-        margin-top: 20px;
-        z-index: 10;
-        position: relative;
-    }
-    
-    /* Card Container */
-    .card-container {
-        transition: transform 0.3s;
-        cursor: pointer;
-        position: relative;
-    }
-    .card-container:hover {
-        transform: scale(1.05); /* The signature Netflix Pop */
-        z-index: 100;
-    }
-    
-    /* Streamlit Image styling override */
-    [data-testid="stImage"] img {
-        border-radius: 4px;
-    }
-
-    /* Card Metadata (Match score etc) */
-    .meta-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-top: 8px;
-        font-size: 0.8rem;
-    }
+    .row-header { margin-left: 60px; font-size: 1.2rem; font-weight: 700; color: #e5e5e5; margin-top: 20px; }
+    .meta-row { display: flex; gap: 10px; font-size: 0.75rem; color: #999; margin-top: 5px; }
     .match-score { color: #46d369; font-weight: bold; }
-    .maturity-rating { border: 1px solid #808080; padding: 0 4px; font-size: 0.7rem; color: #bcbcbc; }
-    .quality-badge { border: 1px solid #808080; border-radius: 3px; padding: 0 4px; font-size: 0.6rem; color: #bcbcbc; }
-
-    /* --- FORM STYLING --- */
-    input, select {
-        background-color: #333 !important;
-        color: white !important;
-        border: none !important;
-        border-bottom: 2px solid #E50914 !important; /* Red underline */
-    }
     
-    /* Custom Streamlit Button Override for the whole app to be generic, 
-       we use custom HTML buttons for the specific Netflix look where possible */
-    .stButton > button {
-        background-color: #E50914;
-        color: white;
-        border-radius: 2px;
-        font-weight: bold;
-        border: none;
-    }
-    
-    /* Hide the top colored bar of Streamlit */
-    header[data-testid="stHeader"] {background:none;}
+    /* Streamlit overrides */
+    .stButton>button { border-radius: 4px; border: none; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
